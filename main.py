@@ -1,18 +1,45 @@
 from datetime import datetime
 
 
-class ContaBancaria:
-    """Classe que representa uma conta bancária com operações básicas."""
+class Usuario:
+    """Classe que representa um usuário (cliente) do banco."""
 
-    def __init__(self, numero_conta: str, titular: str) -> None:
-        self._numero_conta: str = numero_conta
-        self._titular: str = titular
-        self._saldo_centavos: int = 0  # Saldo em centavos
+    def __init__(self, nome: str, data_nascimento: str, cpf: str, endereco: str) -> None:
+        self.nome: str = nome
+        self.data_nascimento: str = data_nascimento
+        self.cpf: str = self._formatar_cpf(cpf)
+        self.endereco: str = endereco
+
+    def _formatar_cpf(self, cpf: str) -> str:
+        """Remove formatação do CPF e armazena apenas números."""
+        return "".join(filter(str.isdigit, cpf))
+
+    def get_cpf_formatado(self) -> str:
+        """Retorna CPF formatado para exibição."""
+        cpf = self.cpf
+        return f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
+
+    def __str__(self) -> str:
+        return f"{self.nome} - CPF: {self.get_cpf_formatado()}"
+
+
+class ContaCorrente:
+    """Classe que representa uma conta corrente."""
+
+    _contador_contas: int = 1
+
+    def __init__(self, usuario: Usuario, agencia: str = "0001") -> None:
+        self.agencia: str = agencia
+        self.numero_conta: int = ContaCorrente._contador_contas
+        self.usuario: Usuario = usuario
+        self._saldo_centavos: int = 0
         self._historico: list[dict[str, str]] = []
-        self._limite_saque_diario_centavos: int = 50000  # R$ 500,00 em centavos
+        self._limite_saque_diario_centavos: int = 50000  # R$ 500,00
         self._saques_realizados_hoje: int = 0
         self._limite_saques_diarios: int = 3
         self._data_ultimo_saque: str = ""
+
+        ContaCorrente._contador_contas += 1
 
     def _real_para_centavos(self, valor: float) -> int:
         """Converte valor em reais para centavos."""
@@ -85,16 +112,14 @@ class ContaBancaria:
 
         # Validação de limite de saques diários
         if self._saques_realizados_hoje >= self._limite_saques_diarios:
-            print(
-                f"❌ Erro: Limite de {self._limite_saques_diarios} saques diários atingido!"
-            )
+            print(f"❌ Erro: Limite de {self._limite_saques_diarios} saques diários atingido!")
             return False
 
         # Validação de limite por saque
         if valor_centavos > self._limite_saque_diario_centavos:
             print(
-                f"❌ Erro: Valor excede o limite máximo de {self._formatar_moeda(self._limite_saque_diario_centavos)} ",
-                "por saque!",
+                f"❌ Erro: Valor excede o limite máximo de {self._formatar_moeda(self._limite_saque_diario_centavos)}",
+                " por saque!",
             )
             return False
 
@@ -122,85 +147,150 @@ class ContaBancaria:
         print("✅ Saque realizado com sucesso!")
         print(f"💸 Valor sacado: {self._formatar_moeda(valor_centavos)}")
         print(f"💳 Saldo atual: {self._formatar_moeda(self._saldo_centavos)}")
-        print(
-            f"📊 Saques restantes hoje: {self._limite_saques_diarios - self._saques_realizados_hoje}"
-        )
+        print(f"📊 Saques restantes hoje: {self._limite_saques_diarios - self._saques_realizados_hoje}")
         return True
 
     def visualizar_extrato(self) -> None:
         """Exibe o extrato completo da conta com todas as operações."""
-        print("\n" + "=" * 60)
+        print("\n" + "=" * 70)
         print("📋 EXTRATO BANCÁRIO")
-        print("=" * 60)
-        print(f"👤 Titular: {self._titular}")
-        print(f"🏦 Conta: {self._numero_conta}")
+        print("=" * 70)
+        print(f"👤 Titular: {self.usuario.nome}")
+        print(f"📄 CPF: {self.usuario.get_cpf_formatado()}")
+        print(f"🏦 Agência: {self.agencia}")
+        print(f"🔢 Conta: {self.numero_conta}")
         print(f"📅 Data: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-        print("-" * 60)
+        print("-" * 70)
 
         if not self._historico:
             print("📝 Nenhuma movimentação registrada.")
         else:
             print("📊 MOVIMENTAÇÕES:")
-            print("-" * 60)
+            print("-" * 70)
             for operacao in self._historico:
                 tipo_icon = "📈" if operacao["tipo"] == "DEPÓSITO" else "📉"
                 print(f"{tipo_icon} {operacao['tipo']}")
                 print(f"   💰 Valor: {operacao['valor']}")
                 print(f"   📅 Data: {operacao['data']}")
                 print(f"   💳 Saldo: {operacao['saldo_pos']}")
-                print("-" * 30)
+                print("-" * 35)
 
         print(f"💰 SALDO ATUAL: {self._formatar_moeda(self._saldo_centavos)}")
-        print("=" * 60)
-
-    def get_saldo_centavos(self) -> int:
-        """Retorna o saldo atual da conta em centavos."""
-        return self._saldo_centavos
+        print("=" * 70)
 
     def get_saldo_formatado(self) -> str:
-        """Retorna o saldo atual formatado em reais."""
+        """Retorna o saldo atual formatado."""
         return self._formatar_moeda(self._saldo_centavos)
 
     def get_info(self) -> dict[str, str]:
         """Retorna informações básicas da conta."""
         return {
-            "titular": self._titular,
-            "conta": self._numero_conta,
+            "titular": self.usuario.nome,
+            "cpf": self.usuario.get_cpf_formatado(),
+            "agencia": self.agencia,
+            "conta": str(self.numero_conta),
             "saldo": self._formatar_moeda(self._saldo_centavos),
         }
 
 
 class SistemaBancario:
-    """Sistema bancário principal que gerencia as contas."""
+    """Sistema bancário principal que gerencia usuários e contas."""
 
     def __init__(self) -> None:
-        self._contas: dict[str, ContaBancaria] = {}
-        self._conta_atual: ContaBancaria | None = None
+        self._usuarios: list[Usuario] = []
+        self._contas: list[ContaCorrente] = []
+        self._conta_atual: ContaCorrente | None = None
 
-    def criar_conta(self, numero_conta: str, titular: str) -> bool:
-        """Cria uma nova conta bancária."""
-        if numero_conta in self._contas:
-            print(f"❌ Erro: Conta {numero_conta} já existe!")
+    def criar_usuario(self, nome: str, data_nascimento: str, cpf: str, endereco: str) -> bool:
+        """
+        Cria um novo usuário.
+
+        Args:
+            nome: Nome completo do usuário
+            data_nascimento: Data no formato DD/MM/AAAA
+            cpf: CPF do usuário (apenas números)
+            endereco: Endereço no formato: logradouro, nro - bairro - cidade/sigla estado
+
+        Returns:
+            bool: True se o usuário foi criado com sucesso
+        """
+        # Remove formatação do CPF para verificação
+        cpf_numeros = "".join(filter(str.isdigit, cpf))
+
+        # Verifica se CPF já existe
+        if self._buscar_usuario_por_cpf(cpf_numeros):
+            print(f"❌ Erro: Usuário com CPF {cpf} já existe!")
             return False
 
-        self._contas[numero_conta] = ContaBancaria(numero_conta, titular)
-        print(f"✅ Conta {numero_conta} criada com sucesso para {titular}!")
+        usuario = Usuario(nome, data_nascimento, cpf_numeros, endereco)
+        self._usuarios.append(usuario)
+        print(f"✅ Usuário {nome} criado com sucesso!")
         return True
 
-    def selecionar_conta(self, numero_conta: str) -> bool:
-        """Seleciona uma conta para operações."""
-        if numero_conta not in self._contas:
-            print(f"❌ Erro: Conta {numero_conta} não encontrada!")
+    def _buscar_usuario_por_cpf(self, cpf: str) -> Usuario | None:
+        """Busca usuário pelo CPF."""
+        cpf_numeros = "".join(filter(str.isdigit, cpf))
+        for usuario in self._usuarios:
+            if usuario.cpf == cpf_numeros:
+                return usuario
+        return None
+
+    def criar_conta_corrente(self, cpf: str) -> bool:
+        """
+        Cria uma conta corrente vinculada a um usuário.
+
+        Args:
+            cpf: CPF do usuário para vincular a conta
+
+        Returns:
+            bool: True se a conta foi criada com sucesso
+        """
+        usuario = self._buscar_usuario_por_cpf(cpf)
+        if not usuario:
+            print(f"❌ Erro: Usuário com CPF {cpf} não encontrado!")
             return False
 
-        self._conta_atual = self._contas[numero_conta]
-        info = self._conta_atual.get_info()
-        print(f"✅ Conta selecionada: {info['conta']} - {info['titular']}")
+        conta = ContaCorrente(usuario)
+        self._contas.append(conta)
+        print(f"✅ Conta {conta.numero_conta} criada com sucesso para {usuario.nome}!")
+        print(f"🏦 Agência: {conta.agencia} - Conta: {conta.numero_conta}")
         return True
 
-    def get_conta_atual(self) -> ContaBancaria | None:
+    def selecionar_conta(self, agencia: str, numero_conta: int) -> bool:
+        """
+        Seleciona uma conta para operações.
+
+        Args:
+            agencia: Número da agência
+            numero_conta: Número da conta
+
+        Returns:
+            bool: True se a conta foi selecionada com sucesso
+        """
+        for conta in self._contas:
+            if conta.agencia == agencia and conta.numero_conta == numero_conta:
+                self._conta_atual = conta
+                info = conta.get_info()
+                print(f"✅ Conta selecionada: {info['agencia']}-{info['conta']} - {info['titular']}")
+                return True
+
+        print(f"❌ Erro: Conta {agencia}-{numero_conta} não encontrada!")
+        return False
+
+    def get_conta_atual(self) -> ContaCorrente | None:
         """Retorna a conta atualmente selecionada."""
         return self._conta_atual
+
+    def listar_usuarios(self) -> None:
+        """Lista todos os usuários cadastrados."""
+        if not self._usuarios:
+            print("📝 Nenhum usuário cadastrado no sistema.")
+            return
+
+        print("\n👥 USUÁRIOS CADASTRADOS:")
+        print("-" * 60)
+        for usuario in self._usuarios:
+            print(f"👤 {usuario}")
 
     def listar_contas(self) -> None:
         """Lista todas as contas do sistema."""
@@ -208,26 +298,45 @@ class SistemaBancario:
             print("📝 Nenhuma conta cadastrada no sistema.")
             return
 
-        print("\n📋 CONTAS CADASTRADAS:")
-        print("-" * 40)
-        for conta in self._contas.values():
+        print("\n🏦 CONTAS CADASTRADAS:")
+        print("-" * 80)
+        for conta in self._contas:
             info = conta.get_info()
-            print(f"🏦 {info['conta']} - {info['titular']} - {info['saldo']}")
+            print(f"🏦 {info['agencia']}-{info['conta']} | {info['titular']} | {info['cpf']} | {info['saldo']}")
 
 
+# Funções para operações bancárias (versão modularizada)
+def depositar(conta: ContaCorrente, valor: float) -> bool:
+    """Função para realizar depósito."""
+    return conta.depositar(valor)
+
+
+def sacar(conta: ContaCorrente, valor: float) -> bool:
+    """Função para realizar saque."""
+    return conta.sacar(valor)
+
+
+def visualizar_historico(conta: ContaCorrente) -> None:
+    """Função para visualizar o histórico/extrato."""
+    conta.visualizar_extrato()
+
+
+# Funções utilitárias
 def exibir_menu() -> None:
     """Exibe o menu principal do sistema."""
-    print("\n" + "=" * 50)
-    print("🏦 SISTEMA BANCÁRIO")
-    print("=" * 50)
-    print("1️⃣  Criar Conta")
-    print("2️⃣  Selecionar Conta")
-    print("3️⃣  Depositar")
-    print("4️⃣  Sacar")
-    print("5️⃣  Visualizar Extrato")
-    print("6️⃣  Listar Contas")
-    print("7️⃣  Sair")
-    print("=" * 50)
+    print("\n" + "=" * 60)
+    print("🏦 SISTEMA BANCÁRIO - VERSÃO 2.0")
+    print("=" * 60)
+    print("1️⃣  Criar Usuário")
+    print("2️⃣  Criar Conta Corrente")
+    print("3️⃣  Selecionar Conta")
+    print("4️⃣  Depositar")
+    print("5️⃣  Sacar")
+    print("6️⃣  Visualizar Extrato")
+    print("7️⃣  Listar Usuários")
+    print("8️⃣  Listar Contas")
+    print("9️⃣  Sair")
+    print("=" * 60)
 
 
 def obter_valor_monetario(prompt: str) -> float | None:
@@ -244,15 +353,18 @@ def obter_valor_monetario(prompt: str) -> float | None:
         return None
 
 
+def validar_cpf(cpf: str) -> bool:
+    """Valida formato básico do CPF."""
+    cpf_numeros = "".join(filter(str.isdigit, cpf))
+    return len(cpf_numeros) == 11
+
+
 def main() -> None:  # noqa: C901
     """Função principal do sistema bancário."""
     sistema = SistemaBancario()
 
-    # Criar uma conta padrão para demonstração
-    sistema.criar_conta("12345-6", "Usuário Demonstração")
-
-    print("🏦 Bem-vindo ao Sistema Bancário!")
-    print("📝 Conta demonstrativa criada: 12345-6")
+    print("🏦 Bem-vindo ao Sistema Bancário v2.0!")
+    print("📝 Sistema modularizado com usuários e contas correntes")
 
     while True:
         exibir_menu()
@@ -261,69 +373,92 @@ def main() -> None:  # noqa: C901
             opcao = input("🔍 Escolha uma opção: ").strip()
 
             if opcao == "1":
-                print("\n📝 CRIAR NOVA CONTA")
-                numero_conta = input("🏦 Digite o número da conta: ").strip()
-                titular = input("👤 Digite o nome do titular: ").strip()
+                print("\n👤 CRIAR NOVO USUÁRIO")
+                nome = input("📝 Nome completo: ").strip()
+                data_nascimento = input("📅 Data de nascimento (DD/MM/AAAA): ").strip()
+                cpf = input("📄 CPF (apenas números): ").strip()
 
-                if numero_conta and titular:
-                    sistema.criar_conta(numero_conta, titular)
-                else:
-                    print(
-                        "❌ Erro: Número da conta e nome do titular são obrigatórios!"
-                    )
-
-            elif opcao == "2":
-                print("\n🔍 SELECIONAR CONTA")
-                sistema.listar_contas()
-                numero_conta = input("🏦 Digite o número da conta: ").strip()
-                sistema.selecionar_conta(numero_conta)
-
-            elif opcao == "3":
-                conta_atual = sistema.get_conta_atual()
-                if not conta_atual:
-                    print(
-                        "❌ Erro: Nenhuma conta selecionada! Selecione uma conta primeiro."
-                    )
+                if not validar_cpf(cpf):
+                    print("❌ Erro: CPF deve ter 11 dígitos!")
                     continue
 
-                print(f"\n💰 DEPÓSITO - Conta: {conta_atual.get_info()['conta']}")
-                valor = obter_valor_monetario("💵 Digite o valor para depósito (R$): ")
-                if valor is not None:
-                    conta_atual.depositar(valor)
+                print("🏠 Endereço:")
+                logradouro = input("   Logradouro: ").strip()
+                numero = input("   Número: ").strip()
+                bairro = input("   Bairro: ").strip()
+                cidade = input("   Cidade: ").strip()
+                estado = input("   Estado (sigla): ").strip()
+
+                endereco = f"{logradouro}, {numero} - {bairro} - {cidade}/{estado}"
+
+                if nome and data_nascimento and cpf:
+                    sistema.criar_usuario(nome, data_nascimento, cpf, endereco)
+                else:
+                    print("❌ Erro: Todos os campos são obrigatórios!")
+
+            elif opcao == "2":
+                print("\n🏦 CRIAR CONTA CORRENTE")
+                cpf = input("📄 CPF do usuário: ").strip()
+
+                if not validar_cpf(cpf):
+                    print("❌ Erro: CPF deve ter 11 dígitos!")
+                    continue
+
+                sistema.criar_conta_corrente(cpf)
+
+            elif opcao == "3":
+                print("\n🔍 SELECIONAR CONTA")
+                sistema.listar_contas()
+                agencia = input("🏦 Digite o número da agência: ").strip()
+                try:
+                    numero_conta = int(input("🔢 Digite o número da conta: ").strip())
+                    sistema.selecionar_conta(agencia, numero_conta)
+                except ValueError:
+                    print("❌ Erro: Número da conta deve ser um número!")
 
             elif opcao == "4":
                 conta_atual = sistema.get_conta_atual()
                 if not conta_atual:
-                    print(
-                        "❌ Erro: Nenhuma conta selecionada! Selecione uma conta primeiro."
-                    )
+                    print("❌ Erro: Nenhuma conta selecionada! Selecione uma conta primeiro.")
                     continue
 
-                print(f"\n💸 SAQUE - Conta: {conta_atual.get_info()['conta']}")
-                print(f"💳 Saldo atual: {conta_atual.get_saldo_formatado()}")
-                valor = obter_valor_monetario("💵 Digite o valor para saque (R$): ")
+                print(f"\n💰 DEPÓSITO - Conta: {conta_atual.agencia}-{conta_atual.numero_conta}")
+                valor = obter_valor_monetario("💵 Digite o valor para depósito (R$): ")
                 if valor is not None:
-                    conta_atual.sacar(valor)
+                    depositar(conta_atual, valor)
 
             elif opcao == "5":
                 conta_atual = sistema.get_conta_atual()
                 if not conta_atual:
-                    print(
-                        "❌ Erro: Nenhuma conta selecionada! Selecione uma conta primeiro."
-                    )
+                    print("❌ Erro: Nenhuma conta selecionada! Selecione uma conta primeiro.")
                     continue
 
-                conta_atual.visualizar_extrato()
+                print(f"\n💸 SAQUE - Conta: {conta_atual.agencia}-{conta_atual.numero_conta}")
+                print(f"💳 Saldo atual: {conta_atual.get_saldo_formatado()}")
+                valor = obter_valor_monetario("💵 Digite o valor para saque (R$): ")
+                if valor is not None:
+                    sacar(conta_atual, valor)
 
             elif opcao == "6":
-                sistema.listar_contas()
+                conta_atual = sistema.get_conta_atual()
+                if not conta_atual:
+                    print("❌ Erro: Nenhuma conta selecionada! Selecione uma conta primeiro.")
+                    continue
+
+                visualizar_historico(conta_atual)
 
             elif opcao == "7":
+                sistema.listar_usuarios()
+
+            elif opcao == "8":
+                sistema.listar_contas()
+
+            elif opcao == "9":
                 print("👋 Obrigado por usar o Sistema Bancário!")
                 break
 
             else:
-                print("❌ Opção inválida! Digite um número de 1 a 7.")
+                print("❌ Opção inválida! Digite um número de 1 a 9.")
 
         except KeyboardInterrupt:
             print("\n\n👋 Sistema encerrado pelo usuário.")
