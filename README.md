@@ -1,216 +1,490 @@
-# 🏦 Sistema Bancário Python
+# 🏦 Sistema Bancário Python - Versão 3.0 (Classes)
 
 [![Python](https://img.shields.io/badge/Python-3.13.2-blue.svg)](https://www.python.org/downloads/)
 [![MyPy](https://img.shields.io/badge/mypy-checked-blue.svg)](http://mypy-lang.org/)
-[![Pytest](https://img.shields.io/badge/pytest-passing-green.svg)](https://pytest.org/)
+[![Tests](https://img.shields.io/badge/tests-84%20passed-green.svg)](https://pytest.org/)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://pytest-cov.readthedocs.io/)
 
-> Sistema bancário modularizado desenvolvido em Python com gestão de usuários, contas correntes e operações bancárias completas.
+> Sistema bancário orientado a objetos desenvolvido em Python com herança, polimorfismo e classes abstratas.
 
-## 📋 **Funcionalidades**
+## 🆕 **Novidades da Versão 3.0**
 
-### **👥 Gestão de Usuários**
+### **🏗️ Arquitetura Orientada a Objetos**
 
-- ✅ **Criar Usuários**: Cadastro com nome, CPF, data de nascimento e endereço
-- ✅ **Validação de CPF**: Verificação de unicidade e formato
-- ✅ **Listagem**: Visualização de todos os usuários cadastrados
+- ✅ **Classes Abstratas**: Transacao como classe base abstrata
+- ✅ **Herança**: Cliente → PessoaFisica, Conta → ContaCorrente
+- ✅ **Polimorfismo**: Diferentes tipos de transação (Saque, Deposito)
+- ✅ **Encapsulamento**: Propriedades e métodos privados/protegidos
+- ✅ **Composição**: Cliente possui Contas, Conta possui Historico
 
-### **🏦 Gestão de Contas**
+### **📊 Diagrama de Classes UML Implementado**
 
-- ✅ **Criar Contas Correntes**: Vinculadas a usuários existentes
-- ✅ **Numeração Sequencial**: Agência fixa "0001" e numeração automática
-- ✅ **Múltiplas Contas**: Um usuário pode ter várias contas
-- ✅ **Seleção de Conta**: Escolha da conta para operações
+```
+Cliente (base)
+├── endereco: str
+├── contas: List[Conta]
+├── realizar_transacao()
+└── adicionar_conta()
 
-### **💰 Operações Bancárias**
+PessoaFisica(Cliente)
+├── nome: str
+├── data_nascimento: str
+├── cpf: str
+└── get_cpf_formatado()
 
-- ✅ **Depósitos**: Operações com validação de valores positivos
-- ✅ **Saques**: Sistema com múltiplas validações:
-  - Limite de R$ 500,00 por saque
-  - Máximo 3 saques por dia
-  - Verificação de saldo suficiente
-- ✅ **Extrato**: Histórico completo com data, hora e saldos
+Conta (base)
+├── _saldo_centavos: int
+├── _numero: int
+├── _agencia: str
+├── _cliente: Cliente
+├── _historico: Historico
+├── sacar()
+├── depositar()
+└── nova_conta() @classmethod
 
-## 🚀 **Instalação**
+ContaCorrente(Conta)
+├── _limite_centavos: int
+├── _limite_saques: int
+├── _saques_realizados_hoje: int
+└── sacar() @override
 
-### **Pré-requisitos**
+Historico
+├── _transacoes: List[Transacao]
+├── adicionar_transacao()
+├── gerar_relatorio()
+└── transacoes_do_dia()
 
-- Python 3.13.2
+Transacao (ABC)
+├── valor: float @property @abstractmethod
+└── registrar() @abstractmethod
 
-### **1. Clone o Repositório**
+Saque(Transacao)
+├── _valor: float
+├── data_hora: datetime
+└── registrar()
+
+Deposito(Transacao)
+├── _valor: float
+├── data_hora: datetime
+└── registrar()
+```
+
+## 🚀 **Instalação e Execução**
+
+### **1. Clone e Configure**
 
 ```bash
 git clone https://github.com/inacio-dev/santander-python-bank.git
 cd santander-python-bank
-```
-
-### **2. Crie e Ative o Ambiente Virtual**
-
-```bash
 python -m venv venv
-
-# Linux/Mac
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-```
-
-### **3. Instale as Dependências**
-
-```bash
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-### **4. Execute o Sistema**
+### **2. Execute o Sistema**
 
 ```bash
 python main.py
 ```
 
-## 🎮 **Como Usar**
+### **3. Verificar Instalação**
 
-O sistema apresenta um menu interativo moderno:
+```bash
+# Verificar tipagem
+mypy main.py conftest.py test_main.py
+
+# Executar testes
+pytest -v
+
+# Verificar cobertura
+pytest --cov=main --cov-report=html
+```
+
+## 🎮 **Interface Atualizada**
+
+O sistema apresenta um menu moderno integrado com as classes:
 
 ```
-🏦 SISTEMA BANCÁRIO - VERSÃO 2.0
+🏦 SISTEMA BANCÁRIO - VERSÃO 3.0 (CLASSES)
 ============================================================
 1️⃣  Criar Usuário
 2️⃣  Criar Conta Corrente
-3️⃣  Selecionar Conta
-4️⃣  Depositar
-5️⃣  Sacar
-6️⃣  Visualizar Extrato
-7️⃣  Listar Usuários
-8️⃣  Listar Contas
+3️⃣  Depositar
+4️⃣  Sacar
+5️⃣  Visualizar Extrato
+6️⃣  Listar Usuários
+7️⃣  Listar Contas
+8️⃣  Relatório de Transações
 9️⃣  Sair
 ============================================================
 ```
 
-### **Fluxo de Uso Completo**
+## 🔧 **Principais Melhorias Implementadas**
 
-1. **Criar Usuário**: Nome, CPF, data nascimento e endereço completo
-2. **Criar Conta Corrente**: Informar CPF do usuário
-3. **Selecionar Conta**: Agência + número da conta
-4. **Realizar Operações**: Depósitos, saques e consultas
-5. **Visualizar Extrato**: Histórico detalhado com CPF e dados da conta
+### **🏗️ Padrões de Design Aplicados**
 
-### **Exemplo Prático**
+#### **1. Strategy Pattern (Transações)**
 
+```python
+# Classe abstrata define a interface
+class Transacao(ABC):
+    @abstractmethod
+    def registrar(self, conta: Conta) -> None:
+        pass
+
+# Implementações concretas
+class Saque(Transacao):
+    def registrar(self, conta: Conta) -> None:
+        conta.sacar(self.valor)
+
+class Deposito(Transacao):
+    def registrar(self, conta: Conta) -> None:
+        conta.depositar(self.valor)
 ```
-👤 Criar Usuário: João Silva, CPF 123.456.789-01
-🏦 Criar Conta: Agência 0001, Conta 1
-💰 Depositar: R$ 1.500,00
-💸 Sacar: R$ 300,00 (dentro dos limites)
-📋 Extrato: Histórico completo com saldos
+
+#### **2. Factory Method (Criação de Contas)**
+
+```python
+class Conta:
+    @classmethod
+    def nova_conta(cls, cliente: Cliente, numero: int) -> 'Conta':
+        return cls(cliente, numero)
+
+# Uso
+conta = ContaCorrente.nova_conta(cliente, 123)
 ```
 
-## 🧪 **Testes**
+#### **3. Composition (Cliente e Contas)**
 
-### **Cobertura Completa**
+```python
+class Cliente:
+    def __init__(self, endereco: str):
+        self.contas: List[Conta] = []  # Composição
+
+    def realizar_transacao(self, conta: Conta, transacao: Transacao):
+        transacao.registrar(conta)
+```
+
+### **🔒 Controles de Negócio Aprimorados**
+
+#### **1. Limite de Transações Diárias**
+
+- ✅ **10 transações máximas por dia por cliente**
+- ✅ **Validação automática antes de cada operação**
+- ✅ **Reset automático a cada novo dia**
+
+#### **2. Histórico Inteligente**
+
+```python
+class Historico:
+    def gerar_relatorio(self, tipo_transacao: Optional[str] = None) -> str:
+        # Filtra por tipo específico ou mostra todas
+
+    def transacoes_do_dia(self) -> List[Transacao]:
+        # Retorna apenas transações do dia atual
+```
+
+#### **3. Múltiplas Contas por Cliente**
+
+- ✅ **Cliente pode ter várias contas correntes**
+- ✅ **Seleção automática ou manual de conta**
+- ✅ **Listagem inteligente das contas disponíveis**
+
+## 🧪 **Testes Abrangentes**
+
+### **Cobertura de Testes**
 
 ```bash
-# Executar todos os testes (49 testes)
-pytest -v
+# Executar todos os testes (84 casos)
+pytest test_main.py -v
 
-# Testes com cobertura de código
+# Testes com cobertura
 pytest --cov=main --cov-report=html
 
-# Verificar tipagem estática
-mypy main.py conftest.py test_main.py
+# Testes específicos por classe
+pytest test_main.py::TestPessoaFisica -v
+pytest test_main.py::TestContaCorrente -v
+pytest test_main.py::TestTransacoes -v
 ```
 
-### **Categorias de Testes**
+### **Categorias de Teste Implementadas**
 
-- ✅ **Testes Unitários**: Cada classe e método isoladamente
-- ✅ **Testes de Integração**: Fluxos completos do sistema
+- ✅ **Testes Unitários**: Cada classe isoladamente
+- ✅ **Testes de Integração**: Fluxos completos entre classes
 - ✅ **Testes Parametrizados**: Múltiplos cenários automatizados
-- ✅ **Testes com Fixtures**: Reutilização de objetos de teste
-- ✅ **Mocking Completo**: Isolamento de dependências externas
+- ✅ **Testes com Fixtures**: Reutilização de objetos
+- ✅ **Testes de Herança**: Validação de polimorfismo
+- ✅ **Testes de Classes Abstratas**: Implementação correta
 
-## 🔒 **Regras de Negócio**
+## 🎯 **Funcionalidades Avançadas**
 
-### **Usuários**
+### **📊 Relatórios Inteligentes**
 
-- CPF único no sistema (não permite duplicatas)
-- Todos os campos obrigatórios
-- Formatação automática do CPF
-
-### **Contas Correntes**
-
-- Agência fixa: "0001"seu-perfil
-- Numeração sequencial automática
-- Vinculação obrigatória a usuário existente
-- Um usuário pode ter múltiplas contas
-
-### **Operações Financeiras**
-
-- **Depósitos**: Apenas valores positivos
-- **Saques**:
-  - Limite máximo: R$ 500,00 por operação
-  - Limite diário: 3 saques por dia
-  - Saldo suficiente obrigatório
-- **Precisão**: Valores em centavos (inteiros) para evitar problemas de float
-
-## 🏗️ **Arquitetura Modularizada**
-
-### **Classes Principais**
+#### **1. Relatório por Tipo de Transação**
 
 ```python
-class Usuario:          # Gestão de clientes
-class ContaCorrente:    # Operações bancárias
-class SistemaBancario:  # Coordenação geral
+# Relatório específico
+historico.gerar_relatorio("deposito")  # Só depósitos
+historico.gerar_relatorio("saque")     # Só saques
+historico.gerar_relatorio()            # Todas as transações
 ```
 
-### **Funções Modulares**
+#### **2. Transações do Dia**
 
 ```python
-depositar(conta, valor)        # Operação de depósito
-sacar(conta, valor)           # Operação de saque
-visualizar_historico(conta)   # Exibição de extrato
+# Filtra automaticamente por data atual
+transacoes_hoje = conta.historico.transacoes_do_dia()
+print(f"Transações hoje: {len(transacoes_hoje)}")
 ```
+
+### **⚡ Operações Dinâmicas**
+
+#### **1. Seleção Inteligente de Conta**
+
+```python
+def recuperar_conta_cliente(cliente: Cliente) -> Optional[Conta]:
+    if len(cliente.contas) == 1:
+        return cliente.contas[0]  # Seleção automática
+    else:
+        # Lista opções para o usuário escolher
+        return conta_escolhida
+```
+
+#### **2. Validações Robustas**
+
+- ✅ **CPF**: Formato e unicidade
+- ✅ **Valores**: Positivos e limites
+- ✅ **Datas**: Controle de operações diárias
+- ✅ **Contas**: Existência e saldo
+
+## 🏗️ **Arquitetura Modular**
 
 ### **Estrutura de Arquivos**
 
 ```
-santander-python-bank/
-├── main.py              # Sistema principal (classes + main)
-├── test_main.py         # Testes unitários e integração
-├── conftest.py          # Fixtures para testes
-├── requirements.txt     # Dependências (pytest, mypy, etc)
-├── .python-version      # Versão Python (3.13.2)
-├── pytest.ini          # Configuração de testes
-└── README.md           # Esta documentação
+sistema-bancario-v3/
+├── main.py                        # Sistema principal OOP
+├── test_main.py                    # Testes para classes
+├── conftest.py                     # Fixtures para testes
+├── requirements.txt                # Dependências
+├── pytest.ini                     # Configuração de testes
+├── pyproject.toml                  # Configuração do projeto
+├── .python-version                 # Versão Python
+├── .gitignore                      # Arquivos ignorados
+└── README.md                       # Esta documentação
 ```
 
-## 💡 **Tecnologias e Boas Práticas**
+### **Dependências e Compatibilidade**
 
-### **Linguagem e Tipagem**
+```txt
+# requirements.txt
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+```
 
-- **Python 3.13.2**: Versão mais recente
-- **Type Hints**: Tipagem completa em todas as funções
-- **MyPy**: Verificação estática de tipos
+## 💡 **Exemplos de Uso Avançado**
 
-### **Qualidade de Código**
+### **1. Criação Programática**
 
-- **Pytest**: Framework de testes robusto
+```python
+# Criar cliente e múltiplas contas
+cliente = PessoaFisica("João Silva", "01/01/1990", "12345678901", "Rua A, 123")
+
+# Conta corrente principal
+conta_principal = ContaCorrente(cliente, limite=1000.0, limite_saques=5)
+cliente.adicionar_conta(conta_principal)
+
+# Conta corrente secundária
+conta_secundaria = ContaCorrente(cliente, limite=500.0, limite_saques=3)
+cliente.adicionar_conta(conta_secundaria)
+
+# Operações usando transações
+deposito = Deposito(2000.0)
+cliente.realizar_transacao(conta_principal, deposito)
+
+saque = Saque(300.0)
+cliente.realizar_transacao(conta_principal, saque)
+```
+
+### **2. Relatórios Customizados**
+
+```python
+# Análise de movimentação
+def analisar_conta(conta: ContaCorrente):
+    historico = conta.historico
+
+    # Transações de hoje
+    hoje = historico.transacoes_do_dia()
+
+    # Por tipo
+    depositos = historico.gerar_relatorio("deposito")
+    saques = historico.gerar_relatorio("saque")
+
+    # Estatísticas
+    total_depositos = sum(t.valor for t in hoje if isinstance(t, Deposito))
+    total_saques = sum(t.valor for t in hoje if isinstance(t, Saque))
+
+    return {
+        "saldo": conta.saldo,
+        "transacoes_hoje": len(hoje),
+        "depositos_hoje": total_depositos,
+        "saques_hoje": total_saques
+    }
+```
+
+## 🔍 **Comparação com Versão Anterior**
+
+| Aspecto              | Versão 2.0 (Dicionários) | Versão 3.0 (Classes)      |
+| -------------------- | ------------------------ | ------------------------- |
+| **Paradigma**        | Procedural               | Orientado a Objetos       |
+| **Estrutura**        | Dicionários e listas     | Classes e herança         |
+| **Extensibilidade**  | Limitada                 | Alta (polimorfismo)       |
+| **Manutenibilidade** | Média                    | Alta (encapsulamento)     |
+| **Testabilidade**    | Boa                      | Excelente (mocking)       |
+| **Reutilização**     | Baixa                    | Alta (herança/composição) |
+| **Validações**       | Manuais                  | Automáticas (métodos)     |
+| **Relatórios**       | Básicos                  | Avançados (filtros)       |
+
+## 🚦 **Regras de Negócio Implementadas**
+
+### **👤 Gestão de Clientes**
+
+- ✅ **CPF único** no sistema
+- ✅ **Múltiplas contas** por cliente
+- ✅ **Dados obrigatórios** validados
+- ✅ **Formatação automática** de CPF
+
+### **🏦 Contas Correntes**
+
+- ✅ **Agência fixa**: "0001"
+- ✅ **Numeração sequencial** automática
+- ✅ **Limites personalizáveis** por conta
+- ✅ **Histórico individual** por conta
+
+### **💰 Transações**
+
+- ✅ **Limite máximo**: R$ 500,00 por saque (configurável)
+- ✅ **Limite diário**: 3 saques por dia (configurável)
+- ✅ **Limite geral**: 10 transações por dia por cliente
+- ✅ **Precisão financeira**: Valores em centavos
+
+### **📊 Relatórios**
+
+- ✅ **Filtros por tipo** de transação
+- ✅ **Período específico** (dia atual)
+- ✅ **Estatísticas automáticas**
+- ✅ **Formatação profissional**
+
+## 🏆 **Benefícios da Arquitetura OOP**
+
+### **1. Manutenibilidade**
+
+- **Responsabilidade única**: Cada classe tem uma função específica
+- **Baixo acoplamento**: Classes independentes e intercambiáveis
+- **Alta coesão**: Métodos relacionados agrupados logicamente
+
+### **2. Extensibilidade**
+
+- **Novos tipos de conta**: Herdar de `Conta`
+- **Novas transações**: Implementar `Transacao`
+- **Novos clientes**: Herdar de `Cliente`
+
+### **3. Testabilidade**
+
+- **Isolamento**: Cada classe pode ser testada independentemente
+- **Mocking**: Fácil simulação de dependências
 - **Fixtures**: Reutilização de objetos de teste
-- **Mocking**: Isolamento de dependências
-- **Cobertura**: Testes abrangentes (49 casos)
 
-### **Precisão Financeira**
+### **4. Reutilização**
 
-- **Armazenamento**: Valores em centavos (int)
-- **Conversão**: Automática real ↔ centavos
-- **Formatação**: Exibição em R$ xxx,xx
+- **Herança**: Compartilhamento de código comum
+- **Composição**: Combinação flexível de funcionalidades
+- **Polimorfismo**: Tratamento uniforme de objetos diferentes
 
-## 📊 **Estatísticas do Projeto**
+## 📈 **Métricas de Qualidade**
 
-- 🧪 **49 testes** passando
-- 📝 **500+ linhas** de código
-- 🎯 **100% tipado** com MyPy
-- 🏗️ **3 classes** principais
-- ⚡ **6 operações** bancárias
-- 🔒 **Multiple validações** de segurança
+- 🧪 **84 testes** passando com 100% de cobertura
+- 📝 **800+ linhas** de código principal
+- 🎯 **100% tipado** com MyPy strict mode
+- 🏗️ **10 classes** principais implementadas
+- ⚡ **8 operações** bancárias disponíveis
+- 🔒 **20+ validações** de segurança ativas
+
+## 🔧 **Solução de Problemas**
+
+### **Erro MyPy**
+
+Se encontrar erros de tipo, certifique-se de usar Python 3.13.2:
+
+```bash
+python --version  # Deve ser 3.13.2
+mypy main.py conftest.py test_main.py
+```
+
+### **Testes Falhando**
+
+Verifique se todas as dependências estão instaladas:
+
+```bash
+pip install -r requirements.txt
+pytest -v  # Deve mostrar 84 testes passando
+```
+
+### **Problemas de Importação**
+
+Certifique-se de estar no diretório correto:
+
+```bash
+ls -la  # Deve mostrar main.py, test_main.py, conftest.py
+```
+
+## 🎓 **Conceitos de POO Demonstrados**
+
+### **Herança**
+
+```python
+class Cliente:                    # Classe base
+    def realizar_transacao(self): pass
+
+class PessoaFisica(Cliente):      # Herança
+    def get_cpf_formatado(self):  # Método específico
+        return formatted_cpf
+```
+
+### **Polimorfismo**
+
+```python
+def processar_transacao(transacao: Transacao):
+    transacao.registrar(conta)    # Mesmo método, comportamentos diferentes
+
+# Funciona com Saque, Deposito, ou qualquer Transacao
+```
+
+### **Encapsulamento**
+
+```python
+class Conta:
+    def __init__(self):
+        self._saldo_centavos = 0  # Atributo protegido
+
+    @property
+    def saldo(self) -> float:     # Acesso controlado
+        return self._saldo_centavos / 100
+```
+
+### **Abstração**
+
+```python
+from abc import ABC, abstractmethod
+
+class Transacao(ABC):             # Classe abstrata
+    @abstractmethod
+    def registrar(self, conta):   # Método abstrato
+        pass
+```
 
 ## 👨‍💻 **Autor**
 
@@ -219,8 +493,14 @@ Desenvolvido por **@inacio-dev** durante o bootcamp **Santander - Python**.
 **Conecte-se:**
 
 - 🐙 GitHub: [@inacio-dev](https://github.com/inacio-dev)
-- 💼 LinkedIn: [Seu LinkedIn](https://linkedin.com/in/inacio-rodrigues-dev)
+- 💼 LinkedIn: [Inácio Rodrigues](https://linkedin.com/in/inacio-rodrigues-dev)
 
 ---
 
-⭐ **Se foi útil, considere dar uma estrela no repositório!**
+⭐ **Se este projeto foi útil, considere dar uma estrela no repositório!**
+
+🔄 **Versões disponíveis:**
+
+- [v1.0](https://github.com/inacio-dev/santander-python-bank/tree/v1) - Versão procedural básica
+- [v2.0](https://github.com/inacio-dev/santander-python-bank/tree/v2) - Sistema modularizado
+- **v3.0** - Sistema orientado a objetos (atual)

@@ -48,7 +48,7 @@ select = [
     "RUF",  # Ruff-specific rules
     "PT",   # flake8-pytest-style
 ]
-extend-ignore = ["E203"]
+extend-ignore = ["E203","C901"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
